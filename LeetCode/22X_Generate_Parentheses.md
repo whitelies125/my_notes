@@ -1,3 +1,0 @@
-# Generate Parentheses
-
-X
