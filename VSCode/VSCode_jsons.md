@@ -47,7 +47,7 @@ VS Code 的 tasks.json
 
 对于多个 .cpp 文件，需要修改两个地方：
 
-~~~C++
+~~~json
 {
     "tasks": [
         {
@@ -83,7 +83,7 @@ VS Code 的 tasks.json
 
 ## launch.json
 
-~~~C++
+~~~json
 {
     "version": "0.2.0",
     "configurations": [
