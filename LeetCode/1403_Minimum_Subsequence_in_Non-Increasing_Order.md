@@ -1,4 +1,4 @@
-# 1403 Minimum Subsequence in Non-Increasing Order
+# 1403. Minimum Subsequence in Non-Increasing Order
 
 ~~~c++
 class Solution {

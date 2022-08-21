@@ -1,4 +1,4 @@
-# Group the People Given the Group Size They Belong To
+# 1282. Group the People Given the Group Size They Belong To
 
 自己写的，时间复杂度 $O(n^2)$。
 

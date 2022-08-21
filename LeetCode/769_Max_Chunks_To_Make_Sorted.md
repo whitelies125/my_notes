@@ -1,4 +1,4 @@
-# Max Chunks To Make Sorted
+# 769. Max Chunks To Make Sorted
 
 思路见 768 Max Chunks To Make Sorted II
 这题是其简化版，无重复数字。

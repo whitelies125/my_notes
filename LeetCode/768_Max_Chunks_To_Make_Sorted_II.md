@@ -1,4 +1,4 @@
-# Max Chunks To Make Sorted II
+# 768. Max Chunks To Make Sorted II
 
 假定分为左块和右块，若左块最大值小于等于右边最小值，则成立，左块确实可成为一个块，count++。
 

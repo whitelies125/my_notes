@@ -1,4 +1,4 @@
-# Maximum Score After Splitting a String
+# 1422. Maximum Score After Splitting a String
 
 自己的：
 时间复杂度：$O(n)$ ，

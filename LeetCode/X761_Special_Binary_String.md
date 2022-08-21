@@ -1,4 +1,4 @@
-# Special Binary String
+# 761. Special Binary String
 
 原本自己写了个 DFS，时间复杂度太高，s.size() = 20（最长 50）都超时了。
 

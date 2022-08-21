@@ -1,4 +1,4 @@
-# Solve the Equation
+# 640. Solve the Equation
 
 思路倒是不难，只是自己代码写得不够简洁：
 

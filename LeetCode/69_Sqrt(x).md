@@ -1,4 +1,4 @@
-# Sqrt(x)
+# 69. Sqrt(x)
 
 ~~~c++
 class Solution {

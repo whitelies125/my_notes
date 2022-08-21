@@ -1,4 +1,4 @@
-# Merge Sorted Array
+# 88. Merge Sorted Array
 
 ~~~C++
 class Solution {

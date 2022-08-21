@@ -1,4 +1,4 @@
-# Generate a String With Characters That Have Odd Counts
+# 1347. Generate a String With Characters That Have Odd Counts
 
 ~~~C++
 class Solution {

@@ -1,4 +1,4 @@
-# Reverse Integer
+# 7. Reverse Integer
 
 ~~~C++
 class Solution {

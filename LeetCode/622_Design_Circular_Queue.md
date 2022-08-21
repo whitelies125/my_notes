@@ -1,4 +1,6 @@
-# Design Circular Queue
+# 622. Design Circular Queue
+
+类似题目：[641_Design_Circular_Deque](641_Design_Circular_Deque.md)
 
 ~~~C++
 class MyCircularQueue {

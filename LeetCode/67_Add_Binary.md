@@ -1,4 +1,4 @@
-# Add Binary
+# 67. Add Binary
 
 ~~~C++
 class Solution {

@@ -1,4 +1,4 @@
-# Zigzag Conversion
+# 6. Zigzag Conversion
 
 ~~~C++
 class Solution {

@@ -1,4 +1,4 @@
-# Generate Parentheses
+# 22. Generate Parentheses
 
 ~~~C++
 class Solution {

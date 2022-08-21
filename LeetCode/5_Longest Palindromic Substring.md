@@ -1,4 +1,4 @@
-# Longest Palindromic Substring
+# 5. Longest Palindromic Substring
 
 ~~~c
 char * longestPalindrome(char * s){
