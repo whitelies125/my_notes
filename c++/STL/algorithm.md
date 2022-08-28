@@ -1,5 +1,7 @@
 # algorithm
 
+[TOC]
+
 #### max_element/min_element
 
 Finds the greatest/smallest element in the range `[first, last)`.
@@ -85,15 +87,20 @@ int main(){
     for(auto& it : nums) cout << it << " ";
     cout << endl;
 
-    vector<int> partial(nums.size(),0);
+    vector<int> partial(nums.size());
     partial_sum(nums.begin(), nums.end(), partial.begin());
     for(auto& it : partial) cout << it << " ";
     cout << endl;
     
+    // 可以原地排序
+    partial_sum(nums.begin(), nums.end(), nums.begin());
+    for(auto& it : nums) cout << it << " ";
+    cout << endl;
     return 0;
 }
 //output:
 //1 1 1 1 1 1 1 1 1 1 
+//1 2 3 4 5 6 7 8 9 10
 //1 2 3 4 5 6 7 8 9 10
 ~~~
 

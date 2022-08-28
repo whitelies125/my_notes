@@ -17,20 +17,27 @@
 对象是什么类型，就调用什么类型。
 
 ~~~C++
+#include <iostream>
+
 class P{//父类
 public:
-    f(){}
+    void f(){ std::cout << "base class" << std::endl; }
 };
+
 class C : public P{//子类
 public:
-    f(){}
+    void f(){ std::cout << "derived class" << std::endl; }
 };
+
 int main(){
     P p;
     C c;
     p.f();//call P::f()
     c.f();//call C::f()
 }
+//output:
+//base class
+//derived class
 ~~~
 
 #### 通过基类指针访问同名函数
@@ -38,23 +45,28 @@ int main(){
 指针是什么类型，就调用什么类型。
 
 ~~~C++
+#include <iostream>
+
 class P{//父类
 public:
-    f(){}
+    void f(){ std::cout << "base class" << std::endl; }
 };
 class C : public P{//子类
 public:
-    f(){}
+    void f(){ std::cout << "derived class" << std::endl; }
 };
 int main(){
     P p;
     C c;
     P* Ptr;
     Ptr = &p;
-    p->f();//call P::f()
+    Ptr->f();//call P::f()
     Ptr = &c;
-    p->f();//call P::f()
+    Ptr->f();//call P::f()
 }
+//output:
+//base class
+//base class
 ~~~
 
 ## Summary: 动态联编的简单示例
@@ -64,23 +76,28 @@ int main(){
 虚函数，不看指针看真对象。
 
 ~~~C++
+#include <iostream>
+
 class P{//父类
 public:
-    virtual f(){}
+    virtual void f(){ std::cout << "base class" << std::endl; }
 };
 class C : public P{//子类
 public:
-    f() override {}
+    void f() override { std::cout << "derived class" << std::endl; }
 };
 int main(){
     P p;
     C c;
     P* Ptr;
     Ptr = &p;
-    p->f();//call P::f()
+    Ptr->f();//call P::f()
     Ptr = &c;
-    p->f();//call C::f()
+    Ptr->f();//call C::f()
 }
+//output:
+//base class
+//derived class
 ~~~
 
 #### 通过基类对象的引用访问同名虚函数
@@ -88,21 +105,26 @@ int main(){
 虚函数，不看引用看真对象。
 
 ~~~C++
+#include <iostream>
+
 class P{//父类
 public:
-    virtual f(){}
+    virtual void f(){ std::cout << "base class" << std::endl; }
 };
 class C : public P{//子类
 public:
-    f() override {}
+    void f() override { std::cout << "derived class" << std::endl; }
 };
 int main(){
     P p;
     C c;
-    P& p1 = P;
-    p1->f();//call P::f()
-    P& p2 = P;
-    p2->f();//call C::f()
+    P& p1 = p;
+    p1.f();//call P::f()
+    P& p2 = c;
+    p2.f();//call C::f()
 }
+//output:
+//base class
+//derived class
 ~~~
 
