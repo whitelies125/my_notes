@@ -2,7 +2,7 @@
 
 [TOC]
 
-#### max_element/min_element
+#### max_element / min_element
 
 Finds the greatest/smallest element in the range `[first, last)`.
 
@@ -102,5 +102,47 @@ int main(){
 //1 1 1 1 1 1 1 1 1 1 
 //1 2 3 4 5 6 7 8 9 10
 //1 2 3 4 5 6 7 8 9 10
+~~~
+
+#### lower_bound / upper_bound
+
+#### lower_bound
+
+returns an iterator to the first element **not less** than the given value
+
+#### upper_bound
+
+returns an iterator to the first element **greater** than the given value
+
+~~~C++
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using std::vector;
+using std::cout;
+
+int main(){
+    vector<int> vec {1,2,3,3,3,6,7};
+    
+    // 返回第一个大于等于的迭代器 index = 2, value = 3;
+    cout << lower_bound(vec.begin(),vec.end(), 3) - vec.begin() << endl;
+    // 返回第一个大于的迭代器 index = 5, value = 6;
+    cout << upper_bound(vec.begin(),vec.end(), 3) - vec.begin() << endl;
+    
+    // 返回第一个大于等于的迭代器，index = 5 value = 6
+    cout << lower_bound(vec.begin(),vec.end(), 5) - vec.begin() << endl;
+    // 返回第一个大于的迭代器，index = 5 value = 6
+    cout << upper_bound(vec.begin(),vec.end(), 5) - vec.begin() << endl;
+    
+    // 下限溢出，返回 0; index = 0,
+    cout << lower_bound(vec.begin(),vec.end(), -1) - vec.begin() << endl;
+    cout << upper_bound(vec.begin(),vec.end(), -1) - vec.begin() << endl;
+
+    // 上限溢出，返回 vec.end(); index = 7
+    cout << lower_bound(vec.begin(),vec.end(), 8) - vec.begin() << endl;
+    cout << upper_bound(vec.begin(),vec.end(), 8) - vec.begin() << endl;
+    return 0;
+}
 ~~~
 

@@ -1,5 +1,7 @@
 # numeric
 
+[TOC]
+
 #### iota
 
 Fills the range `[first, last)` with sequentially increasing values, starting with `value` and repetitively evaluating ++value.
