@@ -136,4 +136,4 @@ void selection_sort(std::array<T, N>& a){
 }
 ~~~
 
-虽然我还是不懂这里 template<typename T, std::sizie_t N> 的用法就算了。
+虽然我还是不懂这里 template<typename T, std::sizie_t N> 的用法就是了。
