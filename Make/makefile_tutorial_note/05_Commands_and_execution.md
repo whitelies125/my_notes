@@ -147,6 +147,62 @@ make -i：等同于在所有 command 行前添加 -。
 
 添加 -：若该 command 行出现错误，上报错误但是忽略，继续执行下一行 command。
 
+#### Recursive use of make
+
+参考官方文档：https://www.gnu.org/software/make/manual/html_node/Recursion.html
+
+使用 $(MAKE) 来递归地调用 makefile，而不是使用 make。因为 $(MAKE) 会传递构建的 flags。
+
+~~~Makefile
+new_contents = "hello:\n\ttouch inside_file"
+all:
+	mkdir -p subdir
+	printf $(new_contents) | sed -e 's/^ //' > subdir/makefile
+	cd subdir && $(MAKE)
+
+clean:
+	rm -rf subdir
+~~~
+
+> Recursive use of `make` means using `make` as a command in a makefile. This technique is useful when you want separate makefiles for various subsystems that compose a larger system. For example, suppose you have a sub-directory subdir which has its own makefile, and you would like the containing directory’s makefile to run `make` on the sub-directory. You can do it by writing this:
+>
+> 递归地使用 make 意指在 makefile 中使用 make 作为一个 commnad。当为由多个子系统组成的大型系统分离 makefiles 时，这个技术相当有用。例如，假定你有一个子目录，其有着自己的 makefile，你想要在其上级目录的 makefile 中执行子目录的 make，你可以这样写：
+>
+> ~~~Makefile
+> subsystem:
+> 	cd subdir && $(MAKE)
+> ~~~
+>
+> or, equivalently, this (see [Summary of Options](https://www.gnu.org/software/make/manual/html_node/Options-Summary.html)):
+>
+> 或等价于（详见 [Summary of Options](https://www.gnu.org/software/make/manual/html_node/Options-Summary.html)):：
+>
+> ~~~Makefile
+> subsystem:
+> 	$(MAKE) -C subdir
+> ~~~
+
+个人测试：
+
+~~~Makefile
+all:
+	echo $(MAKE)
+~~~
+
+shell 结果：
+
+~~~shell
+whitelies125@DESKTOP-H47PT8Q:~/code/makefile$ make
+echo make
+make
+whitelies125@DESKTOP-H47PT8Q:~/code/makefile$ make all
+echo make
+make
+whitelies125@DESKTOP-H47PT8Q:~/code/makefile$
+~~~
+
+可见，$(MAKE) 包含了传递给 make 的参数。而直接使用 make 显然是不带这些参数的。
+
 #### Export，environments，and recursive make
 
 导出，环境，和递归 make
