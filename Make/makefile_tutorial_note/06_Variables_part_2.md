@@ -8,7 +8,7 @@
 >
 >GNU make 中有两种方式来获取变量的值；我们将其称为变量的 flavors（口味）。不同的 flavors 在它们如何处理在 makfile 中被指派的值，以及当这些值之后被使用时如何管理是不同的。
 
-#### Recursively Expanded
+#### Recursively Expanded =
 
 递归展开
 
@@ -30,7 +30,7 @@ https://www.gnu.org/software/make/manual/html_node/Recursive-Assignment.html
 >
 >另一个缺点是，recursively expanded variable 其定义中引用的任何函数，每次在该变量展开时，都会执行该被引用的函数。这也就让 make 运行得更慢了；更糟糕的是，由于递归展开的特性，它会造成定义中的 wildcard 和 shell 函数给出预期外的结果，因为你无法简单地控制什么时候它们被调用，甚至不知道会被调用多少次。
 
-#### Simply Expanded
+#### Simply Expanded :=, ::=
 
 简单展开
 
@@ -83,7 +83,7 @@ all:
 # whitelies125@DESKTOP-H47PT8Q:~/code/makefile$
 ~~~
 
-#### Immediately Expanded Variable Assignment
+#### Immediately Expanded Variable Assignment :::=
 
 立即展开变量指派
 
@@ -138,7 +138,7 @@ all:
 
 个人理解，Immediately Expanded Variable Assignment 是在赋值时进行一次立即展开，随后就是 recursive expanded 的属性。之所以立即展开后要替换 $ 为 $$，是因为转义，替换才能保持原义（此处为 $ 字符），不替换的话含义就变了（此处为 $(...)的值）。
 
-#### Conditional Variable Assignment
+#### Conditional Variable Assignment ?=
 
 https://www.gnu.org/software/make/manual/html_node/Conditional-Assignment.html
 

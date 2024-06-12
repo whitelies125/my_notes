@@ -1,3 +1,5 @@
+[TOC]
+
 ## Automatic Variables and Wildcards
 
 #### * Wildcard

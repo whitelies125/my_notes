@@ -4,6 +4,8 @@
 
 #### Implicit Rules
 
+参见：https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
+
 make 对于 C 和 C++ 语言存在一些隐式规则（当然不止下面这些隐式规则）
 
 1. 编译 C 程序时：make 会使用 $(CC) -c $(CPPFLAGS) $(CFLAGS) $^ -o $@ 命令，从 n.c 文件自动生成 n.o 文件
