@@ -1,9 +1,7 @@
-CXXFLAGS := -Wall
-
 all: main.exe
 
 main.exe: main.cpp gameplayer.cpp
-	g++ --std=c++20 $(CXXFLAGS) -o main.exe main.cpp gameplayer.cpp
+	g++ --std=c++20 -o main.exe main.cpp gameplayer.cpp
 
 .PHONY: run clean
 run:

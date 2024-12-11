@@ -36,7 +36,7 @@ const std::string authorName("Scott Meyers")
 >To limit the scope of a constant to a class, you must make it a member, and to ensure there’s at most one copy of the constant, you must make it a static member:
 >对于一个类，为了限制一个常量的范围，你必须使其为类的成员；且为了确保其只有一份实体，你必须使其为 static 成员（个人注：即使多个类的实例使用同一个 static 成员。）
 ```cpp
-// gamgeplayer.h
+// gameplayer.h
 class GamePlayer {
 private:
 	static const int NumTurns = 5; // constant declaration
@@ -52,6 +52,7 @@ private:
 - 是整数类型（integral type，如 integer，char，bool）
 则是例外。
 只要你**不对其取地址**，那么就可以**仅声明且使用它，而无需提供定义**。
+（个人注：为什么不需要提供定义，实际上有些情况是需要提供定义的，详见后文：[[#为什么 static non-const 成员不能 in-class initialization]]
 
 如果你对其取地址，或你没有对其取地址但你所使用的编译器有点菜，错误地要求一个定义，则可在实现文件中提供一个分离的定义：
 ```cpp
@@ -125,6 +126,31 @@ class S {
 >  如果对象、引用或函数是 odr-used 的，则其定义必须存在于程序的某个地方；违反这一规定通常会导致链接时错误。
 
 因此，我**个人理解**，这种情况下 `b` 往往是 odr-use 的（毕竟如果完全不使用 b，那也没必要定义一个 `b` 出来了），因此极易违背 ODR，导致出现链接错误，所以不允许其直接 in-class initialization。
+
+前文的 `static const int NumTurns = 5` 之所以不需要提供定义，是因为它不是 ODR-use（是编译器常量，不会被写入，没有被取地址，没有被绑定引用），所以不需要提供定义。
+但如果 `NumTurns` 满足了 ODR-use，例如被取地址或被绑定引用，仍然需要提供一个定义。
+```cpp
+// gameplayer.h
+class GamePlayer {
+private:
+	static const int NumTurns = 5;
+	int scores[NumTurns];
+};
+
+// main.cpp
+#include "gameplayer.h"
+int main() {
+    // 对其绑定引用，此时为 ODR-use
+    // 该场景下编译，链接时会报错：undefined reference to `GamePlayer::NumTurns'
+    const int& i = GamePlayer::NumTurns;
+    
+}
+```
+提供一个定义即可编译通过：
+```cpp
+// gameplayer.cpp
+const int GamePlayer::NumTurns;
+```
 ##### C++17 inline static
 C++17 支持了使用 inline 修饰变量（内联变量，inline variable)[^4]，允许内联变量在程序中可以有多于一次的定义，只要每个定义都出现在不同翻译单元中（对于非静态的内联函数和变量(C++17 起)）且所有定义完全一致即可。。
 
@@ -139,5 +165,5 @@ class Solution {
 [^1]: https://en.cppreference.com/w/cpp/language/definition
 [^2]: https://isocpp.org/wiki/faq/cpp11-language-classes#member-init  推荐阅读
 [^3]: https://cppinsights.io/s/e2e0638a
-[4^]: https://en.cppreference.com/w/cpp/language/inline
+[^4]: https://en.cppreference.com/w/cpp/language/inline
 
