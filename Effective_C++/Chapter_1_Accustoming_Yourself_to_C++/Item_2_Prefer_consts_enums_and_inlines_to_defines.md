@@ -20,7 +20,7 @@ AspectRatio 作为语言常量，是肯定能被编译器看见的，也当然�
 （个人注：现如今对于编译期常量（compile-time constant）推荐使用的是 constexpr。
 但考虑到本书成文较早，初版在 05 年出版，而 constexpr 是 11 年的 C++11 引入的，没有 constexpr 内容也属正常。
 至于后续全文提到的常量，我也就默认地认为作者指的**都是 const 而不是 constexpr**。）
-## 场景
+## 使用场景
 当使用常量代替宏时，有两个特殊场景尤其需要注意。
 #### 常量指针（constant pointer)
 除了将指针指向的对象声明为 const 外，也需将指针本身声明为 const，防止别人在使用时将指针指向其他对象。
@@ -75,12 +75,12 @@ private:
 const double CostEstimate::FudgeFactor = 1.35
 ```
 
-此外，对比 \#define 和 const 修饰的数据成员。
+##### 对比 \#define 和 const 修饰的数据成员。
 **\#define：**
 与作用域无关，只要宏被定义，之后的编译除非有该宏的 \#undef，则其一直有效。
 这意味着 \#define 不仅不能用于 class-specific constant，也不能提供任何封装（encapsulation），也就是说，不存在 private \#define 这样的东西。
 
-（个人注：即使将 \#define 写在 private 而不是 public 中，也无用，预处理时仍旧直接将宏替换，因此 \#deinfe 无法提供封装。而封装，对于面向对象编程（OOP，object-oriented programming) 是相当重要的。）
+（个人注：即使将 \#define 写在 private 而不是 public 中，也无用，预处理时仍旧直接将宏替换，可在类外直接使用宏。因此 \#deinfe 无法提供封装，而封装，对于面向对象编程（OOP，object-oriented programming) 是相当重要的。）
 
 **const 的类数据成员：**
 则可被封装，能提供封装。
@@ -126,7 +126,9 @@ class S {
 
 因此，我**个人理解**，这种情况下 `b` 往往是 odr-use 的（毕竟如果完全不使用 b，那也没必要定义一个 `b` 出来了），因此极易违背 ODR，导致出现链接错误，所以不允许其直接 in-class initialization。
 ##### C++17 inline static
-C++17 更近一步地可以更方便地使用 inline 修饰，也就不再需要在 .cpp 文件中提供定义了：
+C++17 支持了使用 inline 修饰变量（内联变量，inline variable)[^4]，允许内联变量在程序中可以有多于一次的定义，只要每个定义都出现在不同翻译单元中（对于非静态的内联函数和变量(C++17 起)）且所有定义完全一致即可。。
+
+于是可以更方便地使用 inline 修饰来解决，同时因为是 inline 也不再需要在源文件中提供定义了：
 ```cpp
 class Solution {
 	inline static int m = 123;
@@ -137,4 +139,5 @@ class Solution {
 [^1]: https://en.cppreference.com/w/cpp/language/definition
 [^2]: https://isocpp.org/wiki/faq/cpp11-language-classes#member-init  推荐阅读
 [^3]: https://cppinsights.io/s/e2e0638a
+[4^]: https://en.cppreference.com/w/cpp/language/inline
 
