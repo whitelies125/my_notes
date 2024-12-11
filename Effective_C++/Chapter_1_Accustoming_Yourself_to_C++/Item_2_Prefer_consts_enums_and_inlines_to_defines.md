@@ -39,8 +39,8 @@ const std::string authorName("Scott Meyers")
 // gameplayer.h
 class GamePlayer {
 private:
-	static const int NumTurns = 5; // constant declaration
-	int scores[NumTurns];          // use of constant
+    static const int NumTurns = 5; // constant declaration
+    int scores[NumTurns];          // use of constant
 };
 ```
 注意，这里的 NumTurns 是声明（declaration）而不是定义（definition）。
@@ -68,8 +68,8 @@ const int GamePlayer::NumTurns; // definition of NumTruns，no value is given
 // cost_estimate.h
 class CostEstimate {
 private:
-	static const double FudgeFactor;
-	...
+    static const double FudgeFactor;
+    ...
 };
 
 // cost_estimate.cpp
@@ -103,8 +103,8 @@ C++11 支持了对 non-static 变量的 in-class initialization[^2]，实则为�
 根据 C++ 声明与定义的划分[^1]：
 ```cpp
 class S {
-	static int a;     // 这是声明
-	static int b = 1; // 这是定义
+    static int a;     // 这是声明
+    static int b = 1; // 这是定义
 }
 ```
 
@@ -133,8 +133,8 @@ class S {
 // gameplayer.h
 class GamePlayer {
 private:
-	static const int NumTurns = 5;
-	int scores[NumTurns];
+    static const int NumTurns = 5;
+    int scores[NumTurns];
 };
 
 // main.cpp
@@ -143,7 +143,6 @@ int main() {
     // 对其绑定引用，此时为 ODR-use
     // 该场景下编译，链接时会报错：undefined reference to `GamePlayer::NumTurns'
     const int& i = GamePlayer::NumTurns;
-    
 }
 ```
 提供一个定义即可编译通过：
@@ -157,7 +156,7 @@ C++17 支持了使用 inline 修饰变量（内联变量，inline variable)[^4]�
 于是可以更方便地使用 inline 修饰来解决，同时因为是 inline 也不再需要在源文件中提供定义了：
 ```cpp
 class Solution {
-	inline static int m = 123;
+    inline static int m = 123;
 };
 ```
 实则是通过 inline 告知编译器允许多个翻译单元对同一个变量都存在定义，最后链接时只保留其中一个作为定义，从而不违背 ODR。
