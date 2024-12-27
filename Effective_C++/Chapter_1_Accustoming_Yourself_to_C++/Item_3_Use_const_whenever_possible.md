@@ -40,4 +40,199 @@ std::vector<int>::const_iterator cIter = vec.begin();// cIter 可变，所指对
 ```
 ## const 与函数
 
-## const 与成员函数
+const 最具威力的用法是用于函数声明。在函数声明中，const 可用于修饰函数返回值、形参、函数本身（对于成员函数）
+### const 与函数返回值
+使函数返回常量，可以减少错误发生同时又不失去安全性与效率。
+考虑以下例子：
+~~~cpp
+// rational.h
+class Rational {...};
+const Rational operator*(const Rational& lhs, const Rational& rhs);
+
+// main.cpp
+Rational a, b, c;
+if (a * b = c){ // 也许是想写 == 但是写错了。
+    ...
+}
+~~~
+在这种情况下，若 operator* 返回的 non-const，则回认为可赋值，因此不会报错；而返回的是 const，编译器则会给出错误提示，从而避免这类错误。
+
+（个人注：现如今（2024.12.27），这种判断语句中少写等号的错误，编译器或代码检查工具都会提示了。当然这里并不是反驳，只是单纯吐槽这个例子也是有点老了。）
+### const 与成员函数
+使用 const 修饰成员函数的目的是指明哪些成员函数可以被 const 对象调用。
+这类成员函数出于以下两种原因非常重要：
+1. 这使得类的接口更易懂。
+   因为让人知道哪些函数会修改对象，而哪些不会是非常重要的。
+3. 这使得我们可以操作 const 对象。
+   如[[Item_20]]所说，一个提升 C++ 编程性能的基本方式是以 reference-to-const 传递对象。而这个技术的前提是我们有 const 成员函数来操作 const 修饰的对象。
+
+**注意**：不同点仅在于是否被 const 修饰成员函数，是重载函数。
+考虑以下例子：
+~~~cpp
+// textBlock.h
+class TextBolck {
+public:
+    ...
+    const char& operator[] (std::size_t position) const { // const 对象调用
+        return text[position];
+    }
+    char& operator[] (std::size_t position) { //  non-const 对象调用
+        return text[position];
+    }
+private:
+    std::string text;
+};
+
+// main.cpp
+TextBolck tb ("Hello")
+std::cout << tb[0]; // 调用无 const 修饰的 operator[]
+const TextBolck ctb ("World");
+std::cout << ctb[0]; // 调用 const 修饰的 operator[]
+~~~
+由此说明，通过 const 修饰进行重载，可对 const 对象和 non-const 对象提供了不同的处理。
+#### 关于 const 成员函数到底 const 了个啥
+对于 const 成员函数的理解，分为了两派：
+1. bitwise constness：
+   const 成员函数不应该修改所处理对象的任何数据成员（除了 static 数据成员外）
+   **这同时也是 C++ 对常量的定义**
+2. logical constness：
+   const 成员函数可以修改它处理的对象中的某些 bit，但仅当用户感知不到时才允许。
+
+##### Bitwise Consness
+使用 bitwise constness 的定义对于编译器来说也是极为方便的，编译器只需在函数中寻找是否有对类（non-static 除外）的数据成员赋值的操作，即可判定该const 成员函数是否违背了 bitwise constness。
+实际上，**bitwise constness 也正是 C++ 对常量性（constness）的定义**，const 成员函数不可更改类（non-static 除外）的数据成员。
+
+然而设想以下场景，如果对象的成员变量为指针类型，该指针保存指向某一对象的地址且所指对象并非指针所属对象的成员，则当通过函数修改所指对象时，所属对象仍然是符合 bitwise constness 定义的。
+更详细地说明：const 对象 A 的成员变量指针 ptr 指向对象 B，在对象 A 的成员函数 func 中通过 ptr 修改对象 B 时，对象 A 是符合 bitwise constness 的，因此，将该函数修饰为 const 也是正确无误的。如下例子中的 func() 函数。
+~~~cpp
+class Cls {
+private:
+    int* const ptr;
+public:
+    Cls(int* n) : ptr(n) {}
+    // 修改的内存并不是 cls对象成员, 因此该成员函数符合 C++ 对 constness 的定义（bitwise constness)
+    // 则使用 const 修饰该成员函数无误，编译器不会报错
+    void func(int n) const {
+        *ptr = n;
+    }
+};
+
+int main() {
+    int n = 0;
+    const Cls cls (&n);
+    cls.func(1); // 调用 const 修饰的 func 函数，无报错
+    return 0;
+}
+
+~~~
+
+又设想，假定 const 成员函数返回成员指针所指地址的 non-const 引用（详见[[Item 28]]，由于在 const 成员函数中并未对对象内部数据有修改，编译器认为其是 bitwise constness，使用 const 修饰并无问题，但实际上对象内部数据仍可能被外部修改。如下例子中的 operator[] 函数。
+~~~cpp
+class CTextBlock {
+private:
+    char *pText;
+public:
+    CTextBlock(char* ptr) : pText(ptr) {}
+    // 返回所指内存的引用，仍符合 C++ 对 constness 的定义（bitwise constness)
+    // 则使用 const 修饰该成员函数无误，编译器不会报错
+    char& operator[] (std::size_t position) const {
+        return pText[position];
+    }
+};
+
+int main() {
+    std::string str {"Rest"};
+    const CTextBlock cctb (str.data());
+    char* pc = &cctb[0];
+    char& ch = cctb[0];
+    *pc = 'S';
+    ch = 'T';
+    std::cout << str << std::endl;
+    return 0;
+}
+~~~
+
+在上述两个例子中，尽管我们创建的是 const 对象，调用的也是 const 成员函数，但实际上我们还是修改了一些数据的值。
+而**大部分场景下，其实我们是抱有着不应修改的期望**。例如：
+~~~cpp
+int main() {
+    std::string str {"Rest"};
+    const CTextBlock cctb (str.data());
+    if (cctb[0] = U ) { // 返回 char& 会导致判断为 true（虽然这个例子也并不非常好罢）
+        ...
+    }
+    std::cout << str << std::endl;
+    return 0;
+}
+~~~
+
+##### Logical Constness
+因此引入了第二种定义，logical constness。
+logical constness 认为 const 成员函数可以修改所处理对象的某些 bit，但仅当用户感知不到时才允许。
+
+如以下示例，假定我们需要提供 length() 函数以返回字符串长度：
+~~~cpp
+class LogicalCTextBlock {
+private:
+    char *pText;
+public:
+    LogicalCTextBlock(char* ptr) : pText(ptr) {}
+    void set(char* ptr) {
+        pText = ptr;
+    }
+    std::size_t length() const {
+        return std::strlen(pText); // 每次调用都需要重复计算长度
+    }
+
+};
+~~~
+
+在频繁调用的场景下，这样的实现每次都需要计算一次字符串长度，性能不佳。
+因此我们在类中添加 textLength 成员以提高程序性能，同时也更方便使用：
+~~~cpp
+class LogicalCTextBlock {
+private:
+    bool lengthIsValid;
+    std::size_t textLength;
+    char *pText;
+public:
+    LogicalCTextBlock(char* ptr) : pText(ptr) {}
+    void set(char* ptr) {
+        pText = ptr;
+        lengthIsValid = false;
+    }
+    std::size_t length() const {
+        if (!lengthIsValid) {
+            textLength = std::strlen(pText); // 编译器报错，不允许 const 成员函数对处理对象的成员进行修改
+            lengthIsValid = true; // 同上
+        }
+        return textLength;
+    }
+};
+~~~
+
+这种实现尽管不是 bitwise constness 的，但从 logical constness 观点看来是自然的、方便的、正确的。
+length() 允许 lengthIsValid 和 textLength 可被修改这样的实现是可接受的，无非是在 bitwise constness 的是现实上添加了额外的变量进行性能优化，pText 本身也并没有被修改。
+
+然而这样的写法会因为 C++ 坚持 bitwise constness 而不允许编译通过。
+因此 C++ 提供了一种解决方法，通过 **mutable** 关键字修饰成员变量，从而告知编译器允许这些变量总是可被修改的。
+~~~cpp
+class LogicalCTextBlock {
+private:
+    mutable bool lengthIsValid;
+    mutable std::size_t textLength;
+    char *pText;
+public:
+    LogicalCTextBlock(char* ptr) : pText(ptr) {}
+    std::size_t length() const {
+        if (!lengthIsValid) {
+            textLength = std::strlen(pText); // 添加 mutable 后无报错
+            lengthIsValid = true; // 同上
+        }
+        return textLength;
+    }
+};
+~~~
+
+（个人注：总结，C++编译器对 constness 的定义是 bitwise constness，提供了 mutable 关键字供用户实现 logical constness。我们在写代码时，需要了解编译器是前者的判别逻辑，但我们的代码实现原则应该也往往按照后者实现更好。）
+### 避免 const 与 non-const 成员函数重复代码
