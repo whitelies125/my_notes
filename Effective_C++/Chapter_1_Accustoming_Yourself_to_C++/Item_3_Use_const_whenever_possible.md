@@ -34,9 +34,14 @@ std::vector<int> vec;
 const std::vector<int>::iterator iter = vec.begin(); // iter 不可变，所指对象可变
 *iter = 10;                                          // ok，所指对象可变
 ++iter;                                              // error，本身不可变
+
 std::vector<int>::const_iterator cIter = vec.begin();// cIter 可变，所指对象不可变
-*cLter = 10;                                         // error，所指对象不可变
-++cIter                                              // ok，本身可变
+*cIter = 10;                                         // error，所指对象不可变
+++cIter;                                             // ok，本身可变
+
+const std::vector<int>::const_iterator ccIter = vec.begin() // ccIter 不可变，所指对象不可变
+*ccIter = 10;                                         // error，所指对象不可变
+++ccIter;                                             // error，本身不可变
 ```
 ## const 与函数
 
@@ -177,18 +182,14 @@ private:
     char *pText;
 public:
     LogicalCTextBlock(char* ptr) : pText(ptr) {}
-    void set(char* ptr) {
-        pText = ptr;
-    }
     std::size_t length() const {
         return std::strlen(pText); // 每次调用都需要重复计算长度
     }
-
 };
 ~~~
 
 在频繁调用的场景下，这样的实现每次都需要计算一次字符串长度，性能不佳。
-因此我们在类中添加 textLength 成员以提高程序性能，同时也更方便使用：
+因此，为了提高程序性能，我们在类中添加 textLength 成员作为 pText 的缓存，当缓存有效时，返回缓存，无效时才计算字符串长度：
 ~~~cpp
 class LogicalCTextBlock {
 private:
@@ -197,10 +198,6 @@ private:
     char *pText;
 public:
     LogicalCTextBlock(char* ptr) : pText(ptr) {}
-    void set(char* ptr) {
-        pText = ptr;
-        lengthIsValid = false;
-    }
     std::size_t length() const {
         if (!lengthIsValid) {
             textLength = std::strlen(pText); // 编译器报错，不允许 const 成员函数对处理对象的成员进行修改
@@ -212,7 +209,7 @@ public:
 ~~~
 
 这种实现尽管不是 bitwise constness 的，但从 logical constness 观点看来是自然的、方便的、正确的。
-length() 允许 lengthIsValid 和 textLength 可被修改这样的实现是可接受的，无非是在 bitwise constness 的是现实上添加了额外的变量进行性能优化，pText 本身也并没有被修改。
+length() 允许 lengthIsValid 和 textLength 可被修改这样的实现是可接受的，无非是在 bitwise constness 的是实现上添加了额外的变量进行性能优化，pText 本身也并没有被修改，这一点实质上是与 bitwise constness 一致的。
 
 然而这样的写法会因为 C++ 坚持 bitwise constness 而不允许编译通过。
 因此 C++ 提供了一种解决方法，通过 **mutable** 关键字修饰成员变量，从而告知编译器允许这些变量总是可被修改的。
@@ -234,5 +231,34 @@ public:
 };
 ~~~
 
-（个人注：总结，C++编译器对 constness 的定义是 bitwise constness，提供了 mutable 关键字供用户实现 logical constness。我们在写代码时，需要了解编译器是前者的判别逻辑，但我们的代码实现原则应该也往往按照后者实现更好。）
+另一个更易懂的例子是：
+~~~cpp
+class BitwiseCMapFind {
+private:
+    std::map<int, int> m;
+public:
+    const std::map<int, int>::const_iterator get(const int key) const {
+        return m.find(key); // 每次调用都需要搜索
+    }
+};
+
+class LogicalCMapCacheFind {
+private:
+    mutable std::map<int, int>::const_iterator cache; // 缓存上一次的查询结果
+    std::map<int, int> m;
+public:
+    const std::map<int, int>::const_iterator get(const int key) const {
+        // cache 命中时，直接返回结果，省去在 map 中搜索的性能开销
+        if (cache->first != key) {
+            const auto itor = m.find(key);
+            if (itor != m.end()) {
+                cache = itor; // 若不以 mutable 修饰，则编译器会报错，因为 const 成员函数不能对处理对象的成员进行修改
+            }
+        }
+        return cache;
+    }
+};
+
+~~~
+（个人注：总结，C++ 对 constness 的定义是 bitwise constness，提供了 mutable 关键字供用户实现 logical constness。我们在写代码时，需要了解编译器是前者的判别逻辑，但我们的代码实现原则应该也往往按照后者实现更好。）
 ### 避免 const 与 non-const 成员函数重复代码

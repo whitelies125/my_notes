@@ -1,5 +1,6 @@
 #include <cstring>
 #include <iostream>
+#include <map>
 
 class TextBlock {
 private:
@@ -37,6 +38,32 @@ public:
     // 则使用 const 修饰该成员函数无误，编译器不会报错
     char& operator[] (std::size_t position) const {
         return pText[position];
+    }
+};
+
+class BitwiseCMapFind {
+private:
+    std::map<int, int> m;
+public:
+    const std::map<int, int>::const_iterator get(const int key) const {
+        return m.find(key); // 每次调用都需要搜索
+    }
+};
+
+class LogicalCMapCacheFind {
+private:
+    mutable std::map<int, int>::const_iterator cache; // 缓存上一次的查询结果
+    std::map<int, int> m;
+public:
+    const std::map<int, int>::const_iterator get(const int key) const {
+        // cache 命中时，直接返回结果，省去在 map 中搜索的性能开销
+        if (cache->first != key) {
+            const auto itor = m.find(key);
+            if (itor != m.end()) {
+                cache = itor; // 若不以 mutable 修饰，则编译器会报错，因为 const 成员函数不能对处理对象的成员进行修改
+            }
+        }
+        return cache;
     }
 };
 
