@@ -260,5 +260,97 @@ public:
 };
 
 ~~~
-（个人注：总结，C++ 对 constness 的定义是 bitwise constness，提供了 mutable 关键字供用户实现 logical constness。我们在写代码时，需要了解编译器是前者的判别逻辑，但我们的代码实现原则应该也往往按照后者实现更好。）
+（个人注：总结，C++ 对 constness 的定义是 bitwise constness，提供了 mutable 关键字供用户实现 logical constness。
+我们在写代码时，需要了解到编译器是使用 bitwise constness 的判别逻辑对 const 成员函数进行检查，但 const 修饰的成员函数如上文所述，是有可能对内存进行修改的（修改指针指向的不归属所处理对象的内存）。
+我们的代码实现原则应该也往往按照 logical constness 来实现更好。）
 ### 避免 const 与 non-const 成员函数重复代码
+
+mutable 是解决 bitwise constness 约束的方法之一，但在某些场景并不适用。
+
+假设出于某些原因，出现了在 const 和 non-const 成员函数的实现实则为重复代码的情况。
+例如为了使 const 对象和 non-const 对象都有可调用的接口，所以需要提供 const 和 non-const 成员函数，但二者实现内容一致；或者出于其他原因。
+考虑以下示例：
+
+~~~cpp
+class TextBlock {
+private:
+    std::string text;
+public:
+    const char& operator[] (std::size_t position) const {
+        ... // 边界检查
+        ... // 访问日志
+        ... // 数据完整性校验
+        return text[position]
+    }
+    char& operator[] (std::size_t position) {
+        ... // 边界检查
+        ... // 访问日志
+        ... // 数据完整性校验
+        return text[position]
+    }
+}
+~~~
+
+这里我们假设上文提到过的 operater[] 函数不止提供返回字符的引用，而是包含了边界检查、访问日志、数据完整性校验等等操作，
+一个提供对字符的只读访问，另一个则可以读写。因此其代码实现上，两个函数的实现是完全一致的重复代码。
+
+第一反应是将重复代码提取为公共（成员）函数，在 const 和 non-const 函数都调用它即可：
+~~~cpp
+class TextBlock {
+private:
+    std::string text;
+    void publicFunc() const {
+        ...
+    };
+public:
+    const char& operator[] (std::size_t position) const {
+        publicFunc()
+        return text[position]
+    }
+    char& operator[] (std::size_t position) {
+        publicFunc()
+        return text[position]
+    }
+}
+~~~
+
+这种方式固然可行，但我们还是重复了调用公共函数、return 语句这两行代码：
+~~~cpp
+        publicFunc()
+        return text[position]
+~~~
+
+更好的做法是一次实现，两次调用，即使用 non-const 成员函数调用 const 成员函数：
+~~~cpp
+class TextBlock {
+private:
+    std::string text;
+public:
+    ...
+    const char& operator[] (std::size_t position) const {
+        ... // 边界检查
+        ... // 访问日志
+        ... // 数据完整性校验
+        return text[position]
+    }
+    char& operator[] (std::size_t position) {
+        return const_cast<char &>(static_cast<const TextBlock&>(*this)[positon])
+    }
+}
+~~~
+第一步，使用 static_cast 将 TextBlock& 转换为 const TextBlock& 类型，从而调用 const operator[] 函数。若不进行转换，则调用的仍然是 non-const operator[] 函数，会发生无限地递归调用。
+第二步，使用 const_cast 移除 const operator[] 函数返回值的 const 属性。
+
+这样也就没有了重复代码。
+
+另请**注意**：只能够由 non-const 函数调用 const 版本的函数，而不能反过来。
+
+>Thing to Remember
+>1. Declaring something const helps compilers detect usage errors. const can be applied to objects at any scope, to function parameters and return types, and to member functions as a whole.
+>   声明为 const 帮助编译器发现错误用法。const 可用于作用域内的任何对象，函数参数，函数返回值，成员函数本身。
+>3. Compilers enforce bitwise constness, but you should program using logical constness
+>   编译器强制实施 bitwise constness，但你编程是应使用 logical constness。
+>5. When const and non-const member functions have essentially identical implementations, code duplication can be avoided by having the non-const version call the const version.
+>   当 const 和 non-const 成员函数有着本质上等价的实现时，通过 non-const 版本调用 const 版本的函数可以避免代码重复。
+
+2024.12.29
