@@ -102,7 +102,6 @@ std::cout << ctb[0]; // 调用 const 修饰的 operator[]
    **这同时也是 C++ 对常量的定义**
 2. logical constness：
    const 成员函数可以修改它处理的对象中的某些 bit，但仅当用户感知不到时才允许。
-
 ##### Bitwise Consness
 使用 bitwise constness 的定义对于编译器来说也是极为方便的，编译器只需在函数中寻找是否有对类（non-static 除外）的数据成员赋值的操作，即可判定该const 成员函数是否违背了 bitwise constness。
 实际上，**bitwise constness 也正是 C++ 对常量性（constness）的定义**，const 成员函数不可更改类（non-static 除外）的数据成员。
@@ -265,10 +264,7 @@ public:
 我们的代码实现原则应该也往往按照 logical constness 来实现更好。）
 ### 避免 const 与 non-const 成员函数重复代码
 
-mutable 是解决 bitwise constness 约束的方法之一，但在某些场景并不适用。
-
-假设出于某些原因，出现了在 const 和 non-const 成员函数的实现实则为重复代码的情况。
-例如为了使 const 对象和 non-const 对象都有可调用的接口，所以需要提供 const 和 non-const 成员函数，但二者实现内容一致；或者出于其他原因。
+出于某些原因，我们的代码中可能出现 const 和 non-const 成员函数实则为等价逻辑、重复代码的现象。
 考虑以下示例：
 
 ~~~cpp
@@ -292,7 +288,8 @@ public:
 ~~~
 
 这里我们假设上文提到过的 operater[] 函数不止提供返回字符的引用，而是包含了边界检查、访问日志、数据完整性校验等等操作，
-一个提供对字符的只读访问，另一个则可以读写。因此其代码实现上，两个函数的实现是完全一致的重复代码。
+出于提供只读访问和读写访问两种接口的原因，我们使其中一个成员函数提供只读访问，另一个则可以读写。
+因此也就导致了存在两个函数 const 与 non-const，但二者除了返回值不同外，在其函数体的代码实现上，是完全一致的重复代码。
 
 第一反应是将重复代码提取为公共（成员）函数，在 const 和 non-const 函数都调用它即可：
 ~~~cpp
@@ -314,7 +311,7 @@ public:
 }
 ~~~
 
-这种方式固然可行，但我们还是重复了调用公共函数、return 语句这两行代码：
+这种方式固然可行，但实际上我们还是重复了调用公共函数、return 语句这两行代码：
 ~~~cpp
         publicFunc()
         return text[position]
