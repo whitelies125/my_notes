@@ -340,7 +340,7 @@ public:
 
 这样也就没有了重复代码。
 
-另请**注意**：只能够由 non-const 函数调用 const 版本的函数，而不能反过来。
+另请**注意：只能够由 non-const 函数调用 const 版本的函数，而不能反过来。**
 
 >Thing to Remember
 >1. Declaring something const helps compilers detect usage errors. const can be applied to objects at any scope, to function parameters and return types, and to member functions as a whole.
