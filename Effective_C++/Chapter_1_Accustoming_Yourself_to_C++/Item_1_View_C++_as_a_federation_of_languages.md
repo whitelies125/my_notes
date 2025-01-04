@@ -1,4 +1,4 @@
-## 条款 01：视 C++ 为一个语言联邦
+# 条款 1：视 C++ 为一个语言联邦
 
 C++ 大致上可分为：
 - C：主要针对 C++ 中关于 C 语言的部分，包括：区块（blocks）、语句（statements）、预处理器（preprocessor）、内置数据类型（built-in data types）、数组（arrays）、指针（pointers）等。而这部分语言也有局限：没有模板、异常以及重载等。

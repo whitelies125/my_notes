@@ -1,3 +1,4 @@
+# 条款 4 确定对象在使用前已先被初始化
 C++ 在初始化上看起来相当反复无常，在不同的上下文中，对象被保证初始化或并不保证。
 虽然有一些规则用来描述对象哪种情况被保证进行初始化，哪种不保证。但这些规则过于复杂。
 通常而言：
@@ -89,7 +90,8 @@ ABEntey::ABEntry(const std::string &name, const std::string &address, const std:
 这种场景下，我们可以合理地将某些赋值操作与初始化表现一样好的 data member 在 member initialization list 省略，改用赋值操作，更好的是将其赋值移动到单独的函数中，供所有构造函数都调用。
 这种情况比较适用于初值是由文件或数据库读入的情况。当然通常情况下还是使用初始化列表中对变量初始化这种操作更为可取。
 （个人注：详见[[Item_2_Prefer_consts_enums_and_inlines_to_defines#个人注：#C++11 non-static in-class member initialization]]中的引用 2，从 C++11 起又有了一种解决方式。）
-#### 初始化顺序
+## 初始化顺序
+### 类成员的初始化顺序
 C++ 对于对象的数据初始化顺序方面，是固定不变的、相同的。其顺序总是
 1. 基类（base clase）先于派生类（derived class）（详见[[Item_12]]）
 2. 在类中，data member 的初始化顺序即它们的声明顺序

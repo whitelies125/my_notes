@@ -1,4 +1,4 @@
-尽量以 const，enum，inline 替换 \#define
+# 条款 2：尽量以 const，enum，inline 替换 \#define
 
 >This Item might better be called "prefer the compiler to the preprocessor,“ because \#define may be treated as if it's not part of the language per se. That's one of its problems.
 >这个条款也许称为 “使用编译器而不是预处理器” 更好，因为 \#define 可能不被视为语言的一部分。这正是使用 \#define 的问题所在。
