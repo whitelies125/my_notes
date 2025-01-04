@@ -89,3 +89,133 @@ ABEntey::ABEntry(const std::string &name, const std::string &address, const std:
 这种场景下，我们可以合理地将某些赋值操作与初始化表现一样好的 data member 在 member initialization list 省略，改用赋值操作，更好的是将其赋值移动到单独的函数中，供所有构造函数都调用。
 这种情况比较适用于初值是由文件或数据库读入的情况。当然通常情况下还是使用初始化列表中对变量初始化这种操作更为可取。
 （个人注：详见[[Item_2_Prefer_consts_enums_and_inlines_to_defines#个人注：#C++11 non-static in-class member initialization]]中的引用 2，从 C++11 起又有了一种解决方式。）
+#### 初始化顺序
+C++ 对于对象的数据初始化顺序方面，是固定不变的、相同的。其顺序总是
+1. 基类（base clase）先于派生类（derived class）（详见[[Item_12]]）
+2. 在类中，data member 的初始化顺序即它们的声明顺序
+因此，即便我们可以按任意顺序在 member initialization list 中列出 data member，但 data member 实际上的初始化顺序仍然是按照上述原则执行的。
+为了避免阅读时产生疑惑，同时也为了避免一些难以察觉的行为 bug，例如：
+~~~cpp
+class Cls {
+public:
+    int a;
+    int b;
+    // 容易让人误以为 b 先初始化为 1，随后 a 初始化为 b 的取值 1
+    // 实际上的初始化顺序是先 a 后 b
+    Cls(): b(1), a(b) {} 
+};
+
+int main() {
+    Cls cls;
+    std::cout << cls.a << std::endl; // 内存垃圾值，不一定
+    std::cout << cls.b << std::endl; // 1
+    return 0;
+}
+
+~~~
+
+因此，**最好总是以声明顺序为 member initialization list 顺序**。
+
+### 不同编译单元中 non-local static 对象的初始化顺序
+先理清概念：
+#### 编译单元
+编译单元（translation unit）指产出单一目标文件（object file）的源码，基本上是指一个源文件及其所有 \#include 的文件。
+#### non-local static object
+static object 指存在期为从被构造到整个程序结束的对象，它们在程序退出时被摧毁，即它们的构造函数在 mian 函数结束时执行。
+其包含：
+- globla 对象
+- 定义在 namaspace 作用域内的对象
+- 定义在 class 内声明为 static 的对象
+- 定义在 function 内声明为 static 的对象
+- 定义在 file 作用域内声明为 static 的对象（也就是源文件中 static 修饰的对象）。
+而不包含栈和堆上的对象。
+
+function 内声明为 static 的对象称为 local static object，因为它们对于函数来说是 local 的。
+其他类别的 static object 则称为 non-local static object。
+
+#### 问题场景
+我们在两个编译单元中，各有至少一个 non-local static object，通常而言这并无大碍。
+但如果编译单元 A 中的 non-local static object（Obj1），其初始化使用了编译单元 B 中的 non-local static object（Obj2），则此时 Obj2 可能尚未初始化。
+这是因为 **C++ 对于定义在不同编译单元中的 non-local static object 初始化相对顺序并没有明确定义**。
+
+~~~cpp
+// file_system.h
+class FileSystem {
+private:
+    std::size_t numDisks_;
+public:
+    FileSystem(std::size_t n) : numDisks_(n) {}
+    std::size_t numDisks() const {
+        return numDisks_;
+    }
+};
+extern FileSystem tfs;
+
+// file_system.cpp
+#include "file_system.h"
+FileSystem tfs {10};
+
+// directory.h
+#include "file_system.h"
+class Directory {
+public:
+    std::size_t disks;
+    Directory(std::size_t n) : disks(n){
+        std::size_t disks = tfs.numDisks();
+    }
+};
+extern Directory dir;
+
+// directory.cpp
+#include "directory.h"
+Directory dir(1);
+~~~
+如上示例，除非 tfs 在 dir 之前被初始化，否则 dir 的构造函数就会使用到尚未初始化的 tfs。
+而 tfs 和 dir 是定义在不同的编译单元的 non-local statis object，其初始化顺序是无法保证的。
+#### 解决方法 non-local static -> local static
+将每个 non-local static object 搬到专属它的函数内，仍使用 static 进行修饰，即将其变为 local static object。该函数返回对该对象的引用，用户使用该对象的方式变为调用函数获取，而非此前的直接操作。
+这实则也就是单例（signleteon）模式的一个常见实现方式。
+
+这个方法是基于 **C++ 保证了对于 local static object，在该函数被调用时首次遇到该 object 的定义时进行初始化**。
+因此，使用「调用返回 local static object 引用的函数」替代「直接访问 non-local static object」，就能够保证获得得引用总是一个已经初始化了的 object。
+甚至，额外地，倘若你从未调用过该函数，就绝不会引发构造和析构其中 local static object 的开销，相比 non-local static object，这种方式要好很多。
+
+~~~cpp
+// file_system.h
+class FileSystem {
+private:
+    std::size_t numDisks_;
+public:
+    FileSystem(std::size_t n) : numDisks_(n) {}
+    std::size_t numDisks() const {
+        return numDisks_;
+    }
+};
+FileSystem& tfs();
+
+// file_system.cpp
+#include "file_system.h"
+FileSystem& tfs() {
+    static FileSystem tfs {10}; // 仅在第一次调用时进行初始化
+    return tfs;
+}
+
+// directory.h
+#include "file_system.h"
+class Directory {
+public:
+    std::size_t disks;
+    Directory(std::size_t n) : disks(n){
+        // 调用 tfs() 获得的引用已确保一定是以初始化的对象
+        std::size_t disks = tfs().numDisks(); 
+    }
+};
+Directory& dir();
+
+// directory.cpp
+#include "directory.h"
+Directory& dir() {
+    Directory dir(1); // 仅在第一次调用时进行初始化
+    return dir;
+};
+~~~
