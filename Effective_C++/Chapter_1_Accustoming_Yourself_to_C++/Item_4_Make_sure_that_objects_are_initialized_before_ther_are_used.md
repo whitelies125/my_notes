@@ -179,6 +179,7 @@ Directory dir(1);
 这个方法是基于 **C++ 保证了对于 local static object，在该函数被调用时首次遇到该 object 的定义时进行初始化**。
 因此，使用「调用返回 local static object 引用的函数」替代「直接访问 non-local static object」，就能够保证获得得引用总是一个已经初始化了的 object。
 甚至，额外地，倘若你从未调用过该函数，就绝不会引发构造和析构其中 local static object 的开销，相比 non-local static object，这种方式要好很多。
+修改后代码如下所示：
 
 ~~~cpp
 // file_system.h
@@ -219,3 +220,42 @@ Directory& dir() {
     return dir;
 };
 ~~~
+此外，采用这个方案的返回 local static object 引用的函数往往非常简单：第一行定义和初始化 local statis object，第二行返回其引用。
+因此非常适合作为 inline 函数（详见[[Item_30]]），尤其是当它被频繁调用时。
+
+从另一个视角来看，内含 local static object 的函数在多线程场景下可能会引发问题。（因为可能多个线程**同时首次**访问该函数，导致对 local static object 进行了多次构造，进而造成内存泄漏等其他异常情况）
+
+解决多线程多次构造问题的一个方式是，在程序的单线程启动阶段手动调用所有的返回 local static object 引用的函数（也就是在程序只有一个线程的时候就手动完成所有初始化），从而消除与初始化相关的 race conditon（竞态条件[^1]）。
+
+>race conditon
+>A race condition or race hazard is the condition of an electronics, software, or other system where the system's substantive behavior is dependent on the sequence or timing of other uncontrollable events, leading to unexpected or inconsistent results. It becomes a bug when one or more of the possible behaviors is undesirable.
+>竞争条件或竞争危险是指电子设备​​、软件或其他系统的一种情况，即系统的实质性行为取决于其他不可控事件的顺序或时间，从而导致意外或不一致的结果。当一个或多个可能的行为不合要求时，就会出现错误。
+>
+>A race condition can arise in software when a computer program has multiple code paths that are executing at the same time.
+>当计算机程序有多个同时执行的代码路径时，软件中可能会出现竞争条件。
+
+这里的 race condition 就是说，进程或线程并发执行时，其最终的结果依赖于进程或者线程执行的精确时序，称为存在竞态条件。当一个计算机程序有多个同时执行的代码路径时，软件中就会出现竞态条件。
+
+（个人注：书太老了，**在 C++11 后，对 local static object 的构造已保证是线程安全的**[^2]，多线程同时调用同一函数时，编译器会确保 local static object 初始化只发生一次。）
+
+事实上，任何类型的 non-const static object——无论是 local 还是 non-local 的——在多线程环境中存在「等待某事发生」的操作，都使其成为潜在的隐患。
+
+---
+
+总而言之，为了避免在对象初始化前使用它们，你需要做三件事：
+- 手动初始化 built-in 类型。
+- 使用 member initialization list 初始化对象的所有部分。
+- 针对定义在不同编译单元中的 non-local static object 初始化顺序不确定性进行设计。
+
+>Things to Remember
+>- Manually initialize object of built-in type, because C++ only sometimes initialize them itself.
+>  手动初始化 built-in 类型，因为 C++ 不保证一定初始化它们
+>- In a constructor, prefer use of the member initialization list to assignment inside the body of the constructor. List data members in the initialization list in the same order they're declared in the class.
+>  在构造函数中，最好使用 member initialization list 而不是在构造函数体内赋值。在 member initialization list 中按 data member 的声明顺序列出。
+>- Avoid initialization order problems across translation units by replacing non-local static objects with local static objects.
+>  以 local static objects 代替 non-local static object 的方式，避免跨编译单元的初始化顺序问题。
+
+[^1]: https://en.wikipedia.org/wiki/Race_condition
+[^2]: https://stackoverflow.com/questions/1661529/is-meyers-implementation-of-the-singleton-pattern-thread-safe
+
+2025.01.05
