@@ -111,15 +111,22 @@ objectValue 为 const 修饰，修改 const 对象在 C++ 中也是不合法的�
 因为，一般情况下，编译器生成的 copy assignment operator 应当处理父类中的部分（子类调用父类的 copy assignment operator）。但这种情况下，子类没有权限调用父类的 copy assignment operator，无法处理。
 
 ---
-
-（个人注：查阅 cppreference[^1]关于 default constructor 和 copy assignment 的页面，关于其不满足自动生成条件的场景，在 C++11 前，编译器的处理为不定义；在C++11 及之后，编译器的处理为将其定位为 deleted。
-使上述例子通过 cppinsight[^2]修改编译的 C++标准验证了一下，得到的报错也不一样，以 copy assignment operator 为例，C++11之前报错 cannot define the implicit copy assignment operator，C++11 及之后报错 copy assignment operator is implicitly deleted）
-
-
 >Things to Rember
 >- Compilers may implicitly generate a class's default constructor, copy constructor, copy assignment operator, and destructor.
 >  编译器可能会隐式生成类的默认构造函数，拷贝构造函数，拷贝赋值函数，析构函数。
+## 个人注
 
-[^1]: https://en.cppreference.com/w/cpp/language/copy_assignment
-[^2]: https://cppinsights.io/
+在 C++11 中，对函数的声明引入了 default，delete[^1]，而本书成文时，C++11 尚未发布，因此在不满足默认生成函数条件时的处理在 C++11 前后有所不同，
+例如：查阅 cppreference[^2]中 default constructor 和 copy assignment 的页面，关于其不满足自动生成条件的场景。
+在 C++11 前，编译器的处理为不定义；在C++11 及之后，编译器的处理为将其声明为 deleted。
+使上述例子通过 cppinsight[^3]修改编译的 C++标准验证了一下，得到的报错也不一样，以 copy assignment operator 为例，C++11之前报错 cannot define the implicit copy assignment operator，C++11 及之后报错 copy assignment operator is implicitly deleted。
+
+另外，C++11 同时引入了 move constructor（移动构造函数），move assignment operator（移动赋值操作符），因此实际上在 C++11及之后，编译器自动生成的函数已经不止是上述所说的 default constructor、default destructor、copy constructor、copy assignment operator。
+
+不过再次提醒，本书成文时 C++11 尚未发布，因此现在看了内容会略有过时。
+
+[^1]: [Function declaration - cppreference.com](https://en.cppreference.com/w/cpp/language/function)
+[^2]: https://en.cppreference.com/w/cpp/language/copy_assignment
+[^3]: https://cppinsights.io/
+
 2025.01.06
