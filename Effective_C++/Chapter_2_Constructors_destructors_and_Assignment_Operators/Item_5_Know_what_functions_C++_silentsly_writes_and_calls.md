@@ -108,7 +108,8 @@ objectValue 为 const 修饰，修改 const 对象在 C++ 中也是不合法的�
 因为编译器不知道在 copy assignment operator 中如何正确处理这些场景。
 
 此外，若子类继承父类且父类声明了 private 属性的 copy assignment operator，则编译器拒绝为子类生成 copy assignment operator。
-因为，一般情况下，编译器生成的 copy assignment operator 应当处理父类中的部分（子类调用父类的 copy assignment operator）。但这种情况下，子类没有权限调用父类的 copy assignment operator，无法处理。
+因为编译器为子类隐式生成的 copy assignment operator 会调用父类的 copy assignment operator 来处理父类中的部分 。但这种情况下，子类没有权限调用父类的 copy assignment operator，而无法处理。
+copy constructor 也是同理。
 
 ---
 >Things to Rember
