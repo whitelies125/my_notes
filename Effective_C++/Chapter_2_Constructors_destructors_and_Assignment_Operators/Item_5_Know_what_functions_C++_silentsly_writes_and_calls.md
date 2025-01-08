@@ -74,8 +74,8 @@ nameValue 的类型为 string，同时 string 类型有 copy constructor，因�
 NamedObject\<int\>::objectValue 是 int 类型，是 built-in 类型，因此，no2.obejctValue 会经以拷贝 no1.obejctValue 的每一个 bit 进行初始化。
 ### copy assignment operator
 编译器生成的 copy assignment operator 在与上述 copy construtor 的行为基本相同。
-但一般情况下，只有在生成的代码既合法又合理时，编译器生成的拷贝赋值运算符才会按照上述的方式工作。
-当生成的代码不合法或不合理时，则编译器不会生成 operator=
+但仅当有在生成的代码既合法又合理时，编译器生成的拷贝赋值运算符才会按照上述的方式工作。
+**当生成的代码不合法或不合理时，则编译器不会生成 copy assignment operator。**
 
 考虑以下示例：
 ~~~cpp
@@ -103,13 +103,12 @@ p.nameValue 与 s.nameValue 都为 string 类型的 reference。
 objectValue 为 const 修饰，修改 const 对象在 C++ 中也是不合法的操作。
 
 对此，C++ 选择拒绝编译赋值操作代码，不会为其生成 copy assignment operator。
-如果你想要在包含 reference 成员的类中支持 copy assignment，则需要自己定义 copy assignment operator。
-想要在包含 const 成员的类中支持 copy assignment，也一样需要自定义。
+如果你想要在**包含 reference 成员的类**中支持 copy assignment，则需要自己定义 copy assignment operator。
+想要在**包含 const 成员的类**中支持 copy assignment，也一样需要自定义。
 因为编译器不知道在 copy assignment operator 中如何正确处理这些场景。
 
-此外，若子类继承父类且父类声明了 private 属性的 copy assignment operator，则编译器拒绝为子类生成 copy assignment operator。
+此外，**若子类继承父类且父类声明为 private 属性的 copy assignment operator**，则编译器拒绝为子类生成 copy assignment operator。
 因为编译器为子类隐式生成的 copy assignment operator 会调用父类的 copy assignment operator 来处理父类中的部分 。但这种情况下，子类没有权限调用父类的 copy assignment operator，而无法处理。
-copy constructor 也是同理。
 
 ---
 >Things to Rember
