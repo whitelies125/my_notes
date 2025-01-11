@@ -121,12 +121,25 @@ objectValue 为 const 修饰，修改 const 对象在 C++ 中也是不合法的�
 在 C++11 前，编译器的处理为不定义；在C++11 及之后，编译器的处理为将其声明为 deleted。
 使上述例子通过 cppinsight[^3]修改编译的 C++标准验证了一下，得到的报错也不一样，以 copy assignment operator 为例，C++11之前报错 cannot define the implicit copy assignment operator，C++11 及之后报错 copy assignment operator is implicitly deleted。
 
-另外，C++11 同时引入了 move constructor（移动构造函数），move assignment operator（移动赋值操作符），因此实际上在 C++11及之后，编译器自动生成的函数已经不止是上述所说的 default constructor、default destructor、copy constructor、copy assignment operator。
+另外，C++11 同时引入了 move constructor（移动构造函数），move assignment operator（移动赋值操作符），因此实际上在 C++11及之后，编译器自动生成的函数已经不止是上述所说的 default constructor、default destructor、copy constructor、copy assignment operator，而是[^4]：
+
+>**Special member functions**
+>Some member functions are special: under certain circumstances they are defined by the compiler even if not defined by the user. They are: 
+>一些成员函数是特殊的，在某些情况下，它们被编译器定义，即便用户并未定义它们。它们有：
+>- Default constructor
+>- Copy constructor
+>- Move constructor (since C++11)
+>- Copy assignment operator
+>- Move assignment operator (since C++11)
+>- Destructor(until C++20) Prospective destructor(since C++20)
+>- Special member functions along with the comparison operators(since C++20) are the only functions that can be defaulted, that is, defined using = default instead of the function body (see their pages for details).
+>  特殊成员函数（comparison operators 从 C++20 起）是唯一可以使用 default 的，即使用 = default 来代替函数体定义。
 
 不过再次提醒，本书成文时 C++11 尚未发布，因此现在看了内容会略有过时。
 
 [^1]: [Function declaration - cppreference.com](https://en.cppreference.com/w/cpp/language/function)
 [^2]: https://en.cppreference.com/w/cpp/language/copy_assignment
 [^3]: https://cppinsights.io/
+[^4]:[Non-static member functions - cppreference.com](https://en.cppreference.com/w/cpp/language/member_functions)
 
 2025.01.06

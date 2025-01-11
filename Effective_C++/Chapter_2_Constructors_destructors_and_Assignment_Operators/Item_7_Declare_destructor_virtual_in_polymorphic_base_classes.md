@@ -32,8 +32,6 @@ delete ptk; // 释放，行为未定义，实际往往会导致资源泄漏
 在实际中，这种操作通常造成的结果是子类的部分没有被释放：
 假定调用 getTimerKeepr 获得的指针实则指向 AtomicClock 对象，则释放时，对象中的 AtomicClock 部分（例如声明在 AtomicClock 中的 data member）可能不会被销毁，或 AtomicClock 的 destructor 不会被执行。而基类（TimeKeeper 部分）通常会被销毁。
 
-
-
 ## 父类 destructor 声明为 virtual
 解决上述问题很简单，**将父类的 destructor 声明为 virtual**。
 ~~~cpp
@@ -48,6 +46,12 @@ delete ptk; // 释放，correct
 ~~~
 
 一般而言，设计上作为基类的类，往往拥有多个 virtual 函数，因为 virtual 函数的目的就是是允许子类定制化的实现（详见[[Item_34]]），因此**对于任何有 virtual 函数的类（这意味着这个类往往作为基类使用），几乎都应当有一个 virtual destructor。**
+
+额外补充，在 C++11 primer（第五版） 15.3 虚函数 中写道：
+>当我们在派生类中覆盖了某个虚函数时，可以再一次使用 virtual 关键字指出该函数的性质。
+>然而这么做并非必须，因为一旦某个函数中被声明成虚函数，则在所有派生类中它都是虚函数。
+
+当然，推荐子类还是写出来 virtual，增强代码可读性。
 
 ## 非基类的析构函数无需声明为 virtual
 如果一个类没有 virtual 函数，那往往意味着它不用作基类。
