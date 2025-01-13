@@ -86,3 +86,30 @@ private:
 
 所以，无缘无故地将所有 destructor 声明为 virtual，和从不声明为 virtual 都是不正确的。
 事实上，人们总结为：**当且仅当类包含 virtual 函数时才将其 destructor 声明为 virtual**。
+
+## 利用 pure virtual 析构函数构造抽象类
+pure virtual function（纯虚函数）会产生 abstract class（抽象类），你无法创建 abstract class 的实例。
+
+有时，我们想要使一个没有 pure virtual function 类为 abstract class，令用户无法创建其实例，则**可使该类的 destructor 为 pure virtual destructor 从而使其为 abstract class**。
+这是因为，abstract class 往往被用作基类，而基类就应当有一个 virtual destructor，于是可以利用该 virtual destructor 为 pure，免去额外思考得将哪个的 function 改为 pure virtual function。
+
+~~~cpp
+class AWOV {
+public:
+ virtual ~AWOV() = 0;
+};
+
+AWOV::~AWOV() {}
+~~~
+如上示例，AWOV 有一个 pure virtual function，因此为抽象类；同时它有 virtual function，所以无需担心前文所述的析构问题。
+但请注意：**必须为 pure virtual destructor 提供定义，否则编译报错[^1]**。
+因为析构函数总是由子类向父类的顺序进行调用，编译器会在 AWOV 的子类 destructor 中调用父类 desturctor，因此必须为其提供定义。
+
+>[^1]
+>The definition of a pure virtual function may be provided (and must be provided if the pure virtual is the destructor)
+>可为 pure virtual function 提供定义（且如果 pure virtual function
+>为 destructor 则必为其提供定义）。
+
+关于抽象类，参考阅读引用1 [^1]。
+
+[^1]: https://en.cppreference.com/w/cpp/language/abstract_class
