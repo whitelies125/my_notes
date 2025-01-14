@@ -112,4 +112,21 @@ AWOV::~AWOV() {}
 
 关于抽象类，参考阅读引用1 [^1]。
 
+## 并非所有类都需要 virtual destructor
+给予基类 virtual destructor 仅当适用于多态基类，这些基类本身就被设计为可通过基类接口操作子类。
+
+但并非所有类都被设计为用于多态基类。
+一些类不作为基类使用，如标准 string 和 STL 容器。
+一些类可能设计为基类，但也未必用于多态。如[[Item_6_Explicitly_disallow_the_use_of_compiler_generated_functions_you_do_not_want]]中的 Uncopyable。
+因此，这些类并不需要 virtual destructor。
+
+---
+>Thing to Remember
+>Polymorphic base classes should declare virtual destructors. If a class has any virtual functions, it should have a virtual destructor.
+>多态基类应声明虚析构函数。如果一个类具有任一虚函数，则其应具有虚析构函数。
+>Classes not designed to be base classes or not designed to be used polymorphically should not declare virtual destructors.
+>不设计为基类或用于多态的类，不应声明虚析构函数。
+
 [^1]: https://en.cppreference.com/w/cpp/language/abstract_class
+
+2025.01.14
