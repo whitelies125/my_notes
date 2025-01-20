@@ -110,7 +110,6 @@ int main() {
 ~~~shell
 whitelies125@DESKTOP-H47PT8Q:~/code/test$ make run
 ./main.exe
-call Transaction::Init()
 pure virtual method called
 terminate called without an active exception
 make: *** [Makefile:7: run] Aborted (core dumped)
@@ -160,7 +159,6 @@ int main() {
 ~~~shell
 whitelies125@DESKTOP-H47PT8Q:~/code/test$ make run
 ./main.exe
-call Transaction::Init()
 call Transaction::logTransaction()
 whitelies125@DESKTOP-H47PT8Q:~/code/test$
 ~~~
@@ -169,7 +167,49 @@ whitelies125@DESKTOP-H47PT8Q:~/code/test$
 构造或析构函数中调用 virtual function 详见[[#个人注#构造或析构函数中对虚函数的调用是其构造或析构函数所在的类中的版本]]。）
 
 ## 解决方法
+如何实现不同子类构造时都打印正确的预期的日志呢。
+简单的方式是，既然 virtual function 在 constructor 中无法向下调用，那么子类向父类构造函数向上传递信息即可：
+~~~cpp
+class Transaction {
+public:
+    // 子类需传递日志信息
+    explicit Transaction(const std::string& logInfo) {
+        logTransaction(logInfo); // 调用 Transaction::logTransaction()
+    }
+    // 改为 non-virtual 函数，避免迷惑用户
+    void logTransaction(const std::string& logInfo) const {
+        std::cout << "call Transaction::logTransaction()" << std::endl;
+    };
+};
 
+class BuyTransaction : public Transaction {
+public:
+    // 将信息向上传递至父类
+    BuyTransaction() : Transaction(CreateLogString()) {}
+private:
+    // 类的 static function，只能访问 static data memeber，避免了可能访问到未初始化的 non-static data member
+    static std::string CreateLogString() {
+        return "BuyTransaction";
+    }
+};
+
+class SellTransaction : public Transaction {
+public:
+    SellTransaction() : Transaction(CreateLogString()) {}
+private:
+    static std::string CreateLogString() {
+        return "SellTransaction";
+    }
+};
+
+int main() {
+    BuyTransaction b;
+    return 0;
+}
+~~~
+
+这里将生成传递信息的操作提取为了函数 CreateLogString()，这样做往往比较方便，可读性也更好。
+需要额外注意的是，这里使用的是 static member function，因为 static member function 只能够访问类的 static data member，从而避免了访问未初始化的 data member。
 ## 个人注
 
 ### 构造或析构函数中对虚函数的调用是其构造或析构函数所在的类中的版本
