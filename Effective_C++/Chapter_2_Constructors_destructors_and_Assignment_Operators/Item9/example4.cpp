@@ -8,7 +8,7 @@ public:
     }
     // 改为 non-virtual 函数，避免迷惑用户
     void logTransaction(const std::string& logInfo) const {
-        std::cout << "call Transaction::logTransaction()" << std::endl;
+        std::cout << logInfo << std::endl;
     };
 };
 

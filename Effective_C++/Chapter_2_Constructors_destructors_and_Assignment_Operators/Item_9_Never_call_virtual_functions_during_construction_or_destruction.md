@@ -178,7 +178,7 @@ public:
     }
     // 改为 non-virtual 函数，避免迷惑用户
     void logTransaction(const std::string& logInfo) const {
-        std::cout << "call Transaction::logTransaction()" << std::endl;
+        std::cout << logInfo << std::endl;
     };
 };
 
@@ -209,7 +209,7 @@ int main() {
 ~~~
 
 这里将生成传递信息的操作提取为了函数 CreateLogString()，这样做往往比较方便，可读性也更好。
-需要额外注意的是，这里使用的是 static member function，因为 static member function 只能够访问类的 static data member，从而避免了访问未初始化的 data member。
+需要额外注意的是，这里使用的是 static member function，因为 static member function 只能够访问类的 static data member 或 static member function（actually，这是因为 static 修饰的 data member 或 member function 并不绑定类），不能访问类的 non-static data member，从而避免了在此时子类尚未构造可能访问到未初始化的 data member 问题。
 ## 个人注
 
 ### 构造或析构函数中对虚函数的调用是其构造或析构函数所在的类中的版本
@@ -225,3 +225,5 @@ int main() {
 
 [^1]: https://en.cppreference.com/w/cpp/language/virtual
 [^2]: https://en.cppreference.com/w/cpp/language/abstract_class
+
+2025.01.21
