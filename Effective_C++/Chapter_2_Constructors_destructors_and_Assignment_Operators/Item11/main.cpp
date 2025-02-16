@@ -1,5 +1,3 @@
-#include <iostream>
-
 class Bitmap {};
 class Widget {
 public:
