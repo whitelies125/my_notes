@@ -82,7 +82,7 @@ public:
 这样 identity test 可以在自我赋值场景下直接 return，使得代码运行速度更快；但同时在未命中（非自我赋值）场景下会代码运行速度会下降，以及多加入了一行代码，也会使得代码略微膨胀。
 因此需要考虑自我赋值的发生频率有多高了，是否需要再加入 identity test。
 ## copy and swap
-先拷贝，在赋值。
+先拷贝，再交换。
 copy and swap 还与[[Item 29]]异常安全有关。思路为：修改对象 A 时，优先创建出一个同类型的临时变量 B，在 B 上完成修改，这样，若 B 顺利完成修改，则将其与对象 A 通过不抛出异常的操作进行 swap；若 B 发生异常，则对象 A 不会受到影响。
 
 ~~~cpp
@@ -112,6 +112,13 @@ public:
 	}
 };
 ~~~
-这样将 copy 动作由函数内部前移到函数参数构造阶段，有时可令编译器生成更好的高效的代码，同时在代码可读性上会略有损失。
+这样将 copy 动作由函数内部前移到函数参数构造阶段，有时可令编译器生成更高效的代码，同时在代码可读性上会略有损失。
+
+# Things to Remember
+
+- Make sure operator= is well-behaved when an object is assigned to itself. Techniques include comparing addresses of source and target objects, careful statement ordering, and copy-and-swap.
+    确保自我赋值时 operator= 是行为良好的。技巧包括有：比较源对象与目标对象的地址、精心设计的语句顺序、copy-and-swap。
+- Make sure that any function operating on more than one object behaves correctly if two or more of the objects are the same.
+    确保任何函数操作多个对象，若其中两个或多个对象是同一对象时，其行为是正确的。
 
 2025.2.16
