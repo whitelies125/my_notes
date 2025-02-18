@@ -125,15 +125,37 @@ class Test {
 public:
     int num;
     Test() = default;
+    Test(const Customer& rhs) : num(rhs.num) {
     std::cout << "call copy constructor" << std::endl;
     *this = rhs; // 尽管确实可以这么写，但总有些奇怪，进入函数体时 data member 就已经完成默认初始化，这里再 copy
                  // 为什么不使用 member initializer list 一次初始化就完成 copy 操作呢
+    // operator=(rhs); // 这么调用也可以
     };
     Test& operator=(const Test& rhs) {
         std::cout << "call copy assignment operator" << std::endl;
         num = rhs.num;
         return *this;
     };
+};
+~~~
+
+以及，copy assignment operator 是对已有的对象进行操作，因此当我们使用/在 copy assignment operator 中时，应当是认为，要赋值到的对象是已存在的，因此如果 copy assignment operator 涉及到资源释放操作时，「令 copy constructor 调用 copy assignment operator」可能存在内存释放问题，例如使用[[Item_11_Handle_assignment_to_self_in_operator=]]中的类举例：
+~~~cpp
+class Widget {
+public:
+    Bitmap* pb;
+    Widget(const Widget& rhs) {
+        *this = rhs; // 此时 *this.pb 是随机值，指向随机位置
+    }
+	Widget& operator=(const Widget& rhs) {
+    	// 写 copy assignment operator 时，我们认为是对已存在的对象进行操作，其是已完成初始化的，因此可能写下如下代码
+    	// 然而，通过 constrctor 进入的 copy assignment operator，该对象可能并未完成初始化
+    	// 也就可能导致了下面释放了随机位置内存
+        Bitmap* pOrig = pb;
+        pb = new Bitmap(*rhs.pb);
+        delete pOrig; // 释放了随机位置的内存！
+        return *this;
+	}
 };
 ~~~
 
@@ -155,6 +177,7 @@ int main() {
     return 0;
 }
 ~~~
+因此，不建议「令 copy constructor 调用 copy assignment operator」。
 
 # Thing to Remember
 - Copying functions should be sure to copy all of an object's data members and all of its base class parts.

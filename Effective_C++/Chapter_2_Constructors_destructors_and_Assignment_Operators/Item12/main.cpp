@@ -62,6 +62,7 @@ public:
         std::cout << "call copy constructor" << std::endl;
         *this = rhs; // 尽管确实可以这么写，但总有些奇怪，进入函数体时 data member 就已经完成默认初始化，这里再 copy
                      // 为什么不使用 member initializer list 一次初始化就完成 copy 操作呢
+        // operator=(rhs); // 这么调用也可以
     };
     Test& operator=(const Test& rhs) {
         std::cout << "call copy assignment operator" << std::endl;
