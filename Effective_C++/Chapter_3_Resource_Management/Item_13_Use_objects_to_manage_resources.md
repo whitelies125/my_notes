@@ -32,7 +32,7 @@ void f() {
     因为 destrctor 会在对象析构时自动调用，因此无论控制流如何离开区块，资源总是会被正确地释放。
     尽管当释放资源时抛出异常，事情可能变得棘手，但这是[[Item_8_Prevent_exceptions_from_leaving_destructors]]解决的问题，这里我们无需再多考虑。
 
-## 使用 std::auto_ptr
+## 使用 std::auto_ptr （c++11 起已废弃）
 大多数场景为，资源从 heap 申请，但仅在一个小区块或函数中使用，当控制流在离开该区块或函数时应释放这些资源。
 
 标准库的 auto_ptr 就是为这种场景定制的。
@@ -45,6 +45,19 @@ void func() {
     // 函数退出时，会通过 auto_ptr 的 dtor 自动调用 delete 其所指对象，
 }
 ~~~
+
+但正因 auto_ptr 的特性，需注意，永远不要使得多个 auto_ptr 指向同一个对象，否则，对象会被多次 delete，进而导致 undefined behavior。
+因此，为了避免该问题，auto_ptr 具有一个不寻常的特性：copy auto_ptr（通过 copy constructor 或 copy assignment operaotr）将会使得源对象（拷贝出的对象）指向 null，目标对象（拷贝到的对象）获得资源的唯一拥有权：
+
+~~~cpp
+std::auto_ptr<Investment> pInv1(createInvestment()); // pInv1 指向 createInvestment 返回的实例
+std::auto_ptr<Investment> pInv2(pInv1); // pInv1 指向 null，pInv2 指向该实例
+pInv1 = pInv2; // pInv2 指向 null，pInv1 指向该实例
+~~~
+由于这个奇特的 copy 行为，以及 auto_ptr 所管理的资源只能有一个 auto_ptr 指向它的底层要求，因此 auto_ptr 并不是管理所有动态申请资源的最好方式。
+例如，STL 容器要求其元素是具有普通 copy 行为的，所以这些 stl 容器不能使用 auto_ptr 作为元素。
+
+（个人注：stl 中可能会存在 copy 操作，例如 std::sort 排序时存在将容器元素 copy 给临时变量的操作，因此若使用 auto_ptr 作为元素的 stl 容器调用 std:sort，那么在赋值给临时变量时，容器中元素的资源所有权转移给了临时变量，即容器中的元素 auto_ptr 被置为了 null，随后临时变量超出作用域时会析构，资源被释放。）
 
 ## 使用 std::str1::shared_ptr
 
