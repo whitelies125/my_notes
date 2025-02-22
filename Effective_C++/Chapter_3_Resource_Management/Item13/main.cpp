@@ -33,9 +33,15 @@ void example_2() {
     // 因此无法找到相匹配的 copy constructor，编译报出上文错误信息
 }
 
+void example_3() {
+    std::vector<std::auto_ptr<Test> > vec(1); // 编译报错
+    // 也是相同的原因，auto_ptr 没有提供 const 版本的 copy function，编译器找不到相匹配的函数
+}
+
 
 int main() {
     example_1();
     example_2();
+    example_3();
     return 0;
 }

@@ -57,8 +57,21 @@ pInv1 = pInv2; // pInv2 指向 null，pInv1 指向该实例
 由于这个奇特的 copy 行为，以及 auto_ptr 所管理的资源只能有一个 auto_ptr 指向它的底层要求，因此 auto_ptr 并不是管理所有动态申请资源的最好方式。
 例如，STL 容器要求其元素是具有普通 copy 行为的，所以这些 stl 容器不能使用 auto_ptr 作为元素。
 
-（个人注：stl 中可能会存在 copy 操作，例如 std::sort 排序时存在将容器元素 copy 给临时变量的操作，因此若使用 auto_ptr 作为元素的 stl 容器调用 std:sort，那么在赋值给临时变量时，容器中元素的资源所有权转移给了临时变量，即容器中的元素 auto_ptr 被置为了 null，随后临时变量超出作用域时会析构，资源被释放。）
+### 个人注：
+
+>[^1]
+>Because of these unusual copy semantics, auto_ptr may not be placed in standard containers
+>由于这些不普通的 copy 语义，auto_ptr 不可用于标准容器中
+
+实际上，我个人在 c++98 尝试了一下，没法向 STL 容器中加入 auto_ptr 元素，会报编译错误。
+
+此外，即便在 STL 容器中加入的 auto_ptr 元素（虽然我没有成功），STL 中可能会存在 copy 操作，例如 std::sort 排序时存在将容器元素赋值给临时变量的 copy 操作，因此若使用 auto_ptr 作为元素的 STL 容器调用 std:sort，那么在赋值给临时变量时，容器中元素的资源所有权转移给了临时变量，即容器中的元素 auto_ptr 被置为了 null，随后临时变量超出作用域时会析构，资源被释放。
+
+甚至只需要一个简单的访问容器元素语句 std::auto_ptr\<T\> ptr = vec\[index\]; 就能使容器中的 auto_ptr 置为 null。
+
 
 ## 使用 std::str1::shared_ptr
 
 ## 使用 std::unique_ptr, std::shared_ptr，std::weak_ptr（c++11 起）
+
+[^1]: https://en.cppreference.com/w/cpp/memory/auto_ptr
