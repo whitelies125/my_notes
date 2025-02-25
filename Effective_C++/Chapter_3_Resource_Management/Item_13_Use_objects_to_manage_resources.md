@@ -7,7 +7,7 @@ Item 13：以对象管理资源
 假设在 func 函数中通过工厂模式[[Item_7_Declare_destructor_virtual_in_polymorphic_base_classes]]由 createInvestment 函数返回基类指针，随后在 func 函数末尾释放它：
 
 ~~~cpp
-Investment * createInvestment(); // fa
+Investment * createInvestment(); // factory function 返回实例指针
 void f() {
     Investment *pInv = createInvestment();
     //...
@@ -71,6 +71,32 @@ pInv1 = pInv2; // pInv2 指向 null，pInv1 指向该实例
 
 
 ## 使用 std::str1::shared_ptr
+
+auto_ptr 的替代方案是 reference-counting smart pointer（RCSP，引用计数的智能指针）。
+RCSP 是能够持续追踪有多少个对象指向同一特殊资源的智能指针，并且当不再有对象指向它时自动 delete 该资源。
+如此，RCSP 提供了类似 garbage collection（GC，垃圾回收）的行为。
+~~~cpp
+void f() {
+    std::tr1::shared_ptr<Investment> pInv1(createInvestment()); // pInv1 指向 createInvestment 返回的实例
+    std::tr1::shared_ptr<Investment> pInv2(pInv1); // pInv1 和 pInv2 都指向同一个实例
+    pInv1 = pInv2; // pInv1 和 pInv2 都指向同一个实例，无变化
+    // pInv1，和 pInv2 析构，无任何对象指向该实例时，该实例也销毁
+}
+~~~
+
+因此，std::str1::shared_ptr 的 copy 行为是寻常的，即可用于 STL 容器，和其他不适用于使用不寻常拷贝行为的 auto_ptr 的场景。
+
+但是 RCSP 无法打破 cycles of references（环状引用），例如两个对象虽已不使用但二者互相指向，则不满足 "不再有对象指向它" 的条件而导致无法自动释放。
+
+Note，
+auto_ptr 和 std::str1::shared_ptr 二者的析构函数中，都使用的是 delete 而非 delete\[\] 进行资源释放。
+因此，二者不适用于数组类型：
+~~~cpp
+void func() {
+    std::auto_ptr<int> api (new int[1024]); // 错误，析构时使用的是 delete 而非 delete[]
+    std::tr1::shared_ptr<std::string> sps(new std::string[10]); // 同样会造成资源泄漏
+}
+~~~
 
 ## 使用 std::unique_ptr, std::shared_ptr，std::weak_ptr（c++11 起）
 
