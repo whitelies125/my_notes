@@ -99,5 +99,15 @@ void func() {
 ~~~
 
 ## 使用 std::unique_ptr, std::shared_ptr，std::weak_ptr（c++11 起）
+自 C++11 起，标准库提供了三种智能指针来管理动态内存。
+但这里就不详细叙述了。
+
+## Things to Remember
+- To prevent resource leaks, use RAII objects that acquire resources in their constructors and release them in their destructors.
+    为了避免资源泄漏，使用在其构造函数中申请资源、析构函数中释放资源的 RAII 对象。
+- Two commonly useful RAII classes are tr1::shared_ptr and auto_ptr. tr1::shared_ptr is usualy the better choice, because its behavior when copied is intuitive. Copying an auto_ptr sets is to null.
+    两个常见有用的 RAII 类是 tr1::shared_ptr 和 auto_ptr。tr1::shared_ptr 通常是更佳选择，因为其拷贝行为是符合直觉的。而拷贝 auto_ptr 会使其置为 null。
 
 [^1]: https://en.cppreference.com/w/cpp/memory/auto_ptr
+
+2025.02.26
