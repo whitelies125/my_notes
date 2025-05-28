@@ -52,6 +52,9 @@ public:
 
 public:
     Index() : len_ {0}, node_(nullptr), head_(0), tail_(0) {}
+    ~Index() {
+        delete[] node_;
+    }
 
     // 用于初始化 id 范围
     uint32_t Init(T size) {
@@ -214,13 +217,18 @@ class Index : public IndexBase<T> {
     static constexpr T INVALID_ID = static_cast<T>(-1);
     
 public:
+    ~Index() {
+	    delete[] buff;
+    }
     uint32_t Init(T size) {
         if (size == 0 || size >= INVALID_ID) {
             return INVALID_ID;
         }
-        T* buff = new T[size];
+        buff = new T[size];
         return IndexBase<T>::Init(size, buff);
     }
+private:
+    T* buff_;
 };
 
 // 静态内存使用这个
