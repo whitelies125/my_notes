@@ -300,7 +300,7 @@ git branch -D <branch_name>
 
 ### 切换分支
 
-#### git checkout 
+#### git checkout
 
 用于切换工作分支。
 

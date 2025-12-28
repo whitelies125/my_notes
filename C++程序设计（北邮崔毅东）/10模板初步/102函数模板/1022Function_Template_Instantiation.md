@@ -12,7 +12,7 @@ Function Template & Instantiation
 
   函数模板本身只是一个蓝图，并不是一个类型或一个函数。
 
-- 编译器扫描代码，遇到模板定义时，并不理解产生代码。
+- 编译器扫描代码，遇到模板定义时，并不立即产生代码。
 
 - The template arguments must be determined so that the compiler can generate an actual function.
 
